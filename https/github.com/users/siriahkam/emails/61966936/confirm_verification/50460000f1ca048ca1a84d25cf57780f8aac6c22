@@ -1,0 +1,331 @@
+import cv2
+import numpy as np
+import time
+import math
+
+import matplotlib.pyplot as plt
+from numpy import *
+import scipy.io
+
+
+ar = 0
+posx0 = []
+posy0 = []
+posx1 = []
+posy1 = []
+posx2 = []
+posy2 = []
+r = 0
+
+timer=[]
+
+
+magpos0 = []
+magpos1 = []
+magpos2 = []
+t = []
+co = 0
+c1 = 0
+c2 = 0
+cos=0
+
+speedx0 = []
+speedx1 = []
+speedx2 = []
+
+speedy0 = []
+speedy1 = []
+speedy2 = []
+
+accx0 = []
+accy0 = []
+accx1 = []
+accy1 = []
+accx2 = []
+accy2 = []
+
+magspeed0 = []
+magspeed1 = []
+magspeed2 = []
+
+magacc0 = []
+magacc1 = []
+magacc2 = []
+
+timer = []
+maxpos = 0
+minpos = 0
+maxspeed = 0
+maxacc = 0
+t = 0
+timep = 0
+
+angel0=0
+angel1=0
+
+
+# def nothing(x):
+#     print("hello")
+
+cap = cv2.VideoCapture(r"C:\Users\SIR\Videos\saa2.mp4")  # cap frames
+# cv2.namedWindow("Color Tracking2")
+# cv2.createTrackbar("Gray","Color Tracking2",0,1,nothing)
+
+while (1):
+
+    ret, frame = cap.read()  # read frames
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # convert to hsv from BGR
+    lower_green = np.array([40, 120, 120])
+
+    upper_green = np.array([95, 255, 255])  # color limits
+
+    green = cv2.inRange(hsv, lower_green, upper_green)
+    kernal = np.ones((5, 5), "uint8")  # array 5*5 btmshy gwa al frame
+
+    green = cv2.morphologyEx(green, cv2.MORPH_OPEN, kernal)  # decrease size of small white pixles (noise)
+    green = cv2.dilate(green, kernal, iterations=3)  # itrate 3 times to increase size of white pixles
+    res = cv2.bitwise_and(frame, frame, mask=green)
+
+    # s=cv2.getTrackbarPos("Gray","Color Tracking2")
+    # if s==0 :
+    #     pass
+    # else :
+    #     frame = cv2.cvtColor(frame,cv2.COLOR_BGRA2GRAY)
+
+
+    # cv2.createTrackbar('R', 'Color Tracking2', 0, 255, nothing)
+    # cv2.createTrackbar('G', 'Color Tracking2', 0, 255, nothing)
+    # cv2.createTrackbar('B', 'Color Tracking2', 0, 255, nothing)
+    #
+    # switch = '0 : OFF \n1 : ON'
+    # cv2.createTrackbar(switch, 'Color Tracking2', 0, 1, nothing)
+
+    vidL = cv2.VideoCapture(r"C:\Users\SIR\Videos\saa2.mp4")
+    if not vidL.isOpened():
+        vidL.open()
+    FPS = float(vidL.get(cv2.CAP_PROP_FPS))
+    totalFrames = int(vidL.get(cv2.CAP_PROP_FRAME_COUNT))
+    # print(totalFrames)
+    tLoop = float(1 / FPS)
+    # print(tLoop)
+
+    (_, contours, hierarchy) = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # find contours
+
+    for pic, contour in enumerate(contours):
+        area = cv2.contourArea(contour)
+        if (area > 1000):
+            cnt = contours[0]
+            #   print(cnt)
+            M = cv2.moments(cnt)
+            i=pic
+            moments = cv2.moments(contours[i])
+            cx = int(moments['m10'] / moments['m00'])  # x position
+            cy = int(moments['m01'] / moments['m00'])  # y position
+                # centres.append((cx,cy))
+            pt2 = cx, cy
+            cv2.circle(frame, pt2, 5, (50, 40, 200), -1)  # image,radius of circ,color of circ,hollow in the circ
+            cv2.circle(green, pt2, 5, (0, 0, 0), -1)
+            x, y, w, h = cv2.boundingRect(contour[i])
+            if (i == 0):
+
+                        posx0.append(cx)
+                        posy0.append(cy)
+                        magpos0.append((math.sqrt(math.pow(posx0[co], 2) + math.pow(posy0[co], 2))) * 0.026458)
+                        speedx0.append(((abs(posx0[co] - posx0[co - 1])) / tLoop) * 0.026458)
+                        speedy0.append(((abs(posy0[co] - posy0[co - 1])) / tLoop) * 0.026458)
+                        magspeed0.append(math.sqrt(math.pow(speedx0[co], 2) + math.pow(speedy0[co], 2)))
+                        accx0.append((abs(speedx0[co] - speedx0[co - 1])) / tLoop)
+                        accy0.append((abs(speedy0[co] - speedy0[co - 1])) / tLoop)
+                        magacc0.append(math.sqrt(math.pow(accx0[co], 2) + math.pow(accy0[co], 2)))
+
+                        cv2.putText(green, ("x =" + str(cx) + "," + "y =" + str(cy)), (cx - 80, cy+90 ),
+                                    cv2.QT_FONT_NORMAL, 0.5,
+                                    (250, 250, 255))
+
+                        cv2.putText(frame, str(magspeed0[co])+" cm/s", (cx -80, cy+90), cv2.QT_FONT_NORMAL, 0.4,
+                                     (250, 250, 255))
+                        cv2.putText(frame, str(magacc0[co])+ " cm/s^2", (cx, cy - 30), cv2.QT_FONT_NORMAL, 0.4,
+                                     (250, 250, 255))
+
+            if (i == 1):
+                        posx1.append(cx)
+                        posy1.append(cy)
+                        magpos1.append((math.sqrt(math.pow(posx1[co], 2) + math.pow(posy1[co], 2))) * 0.026458)
+                        speedx1.append(((abs(posx1[co] - posx1[co - 1])) / tLoop) * 0.026458)
+                        speedy1.append(((abs(posy1[co] - posy1[co - 1])) / tLoop) * 0.026458)
+
+                        magspeed1.append(math.sqrt(math.pow(speedx1[co], 2) + math.pow(speedy1[co], 2)))
+                        accx1.append((abs(speedx1[co] - speedx1[co - 1])) / tLoop)
+                        accy1.append((abs(speedy1[co] - speedy1[co - 1])) / tLoop)
+                        magacc1.append(math.sqrt(math.pow(accx1[co], 2) + math.pow(accy1[co], 2)))
+
+                        cv2.putText(green, ("x =" + str(cx) + "," + "y =" + str(cy)), (cx +30, cy - 15),
+                                    cv2.QT_FONT_NORMAL, 0.7,
+                                    (250, 250, 255))
+                        cv2.putText(frame, str(magspeed1[co])+" cm/s", (cx+30, cy+0), cv2.QT_FONT_NORMAL, 0.5,
+                                    (250, 250, 255))
+                        cv2.putText(frame, str(magacc1[co])+" cm/s^2", (cx+50, cy + 40), cv2.QT_FONT_NORMAL, 0.5,
+                                    (250, 250, 255))
+
+
+            if (i == 2): #awl no2ta 5als
+
+                    posx2.append(cx)
+                    posy2.append(cy)
+                    magpos2.append((math.sqrt(math.pow(posx2[co], 2) + math.pow(posy2[co], 2))) * 0.026458)
+                    speedx2.append(((abs(posx2[co] - posx2[co - 1])) / tLoop) * 0.026458)
+                    speedy2.append(((abs(posy2[co] - posy2[co - 1])) / tLoop) * 0.026458)
+                    magspeed2.append(math.sqrt(math.pow(speedx2[co], 2) + math.pow(speedy2[co], 2)))
+                    accx2.append((abs(speedx2[co] - speedx2[co - 1])) / tLoop)
+                    accy2.append((abs(speedy2[co] - speedy2[co - 1])) / tLoop)
+                    magacc2.append(math.sqrt(math.pow(accx2[co], 2) + math.pow(accy2[co], 2)))
+
+                    cv2.putText(green, ("x =" + str(cx) + "," + "y =" + str(cy)), (cx + 40, cy - 15),
+                                cv2.QT_FONT_NORMAL, 0.7,
+                                (250, 250, 255))
+
+                    cv2.putText(frame, str(magspeed2[co])+" cm/s", (cx, cy), cv2.QT_FONT_NORMAL, 0.5,
+                                (250, 250, 255))
+                    cv2.putText(frame, str(magacc2[co])+" cm/s^2", (cx, cy - 30), cv2.QT_FONT_NORMAL, 0.5,
+                                (250, 250, 255))
+                    # c2 = c2 + 1
+
+                 # angel1 = int(math.atan((posyb[cos] - posy2[cos]) / (posx2[cos] - posxb[cos])) * 180 / math.pi)
+            #
+            # #      cv2.line(frame, posya[cos], posxa[cos], (0, 255, 0), 4, lineType=8)
+            # #  cv2.putText(frame, str(angle),  (cx , cy ), cv2.QT_FONT_NORMAL, 0.4)
+
+            #
+            #
+            # # print(posx0)
+            #
+            # # hypotenuse =  distance((posx0[co],posy0[co]), (pos2x[co+1], pos2y[co+1]))
+            # # quantifies the horizontal of the triangle
+            # # horizontal = distance((pos0x[co], posy0[co]), (pos2x[co+1], pos2y[co+1]))
+            # # makes the third-line of the triangle
+            # # thirdline = distance((pos2x[co], pos2y[co]), (pos2x[co+1], pos0y[co+1]))
+            # # calculates the angle using trigonometry
+            # angle = np.arcsin((thirdline/hypotenuse))* 180/math.pi
+
+            # draws all 3 lines
+            # cv2.line(frame, (bluex, bluey), (orangex, orangey), (0, 0, 255), 2)
+            # cv2.line(frame, (bluex, bluey), (orangex, bluey), (0, 0, 255), 2)
+            # cv2.line(frame, (orangex,orangey), (orangex, bluey), (0,0,255), 2)
+            # cv2.putText(frame, ("x =" + str(cx) + "," + "y =" + str(cy)), (cx - 40, cy - 15), cv2.QT_FONT_NORMAL, 0.4,
+            #          (250, 250, 255))
+
+            # print(speedx[co])
+
+            # print(((abs(posx[co]-posx[co-1])/tLoop)*0.026458,"<,,,,,,,,,,,,"))
+
+            # print (((abs(posy[co]-posy[co-1]))/tLoop)*0.026458)
+
+            # print ((speedx[co]),"")
+
+            # print(centres)
+            #
+            #
+            #
+            # pt2 = cx, cy
+            #
+            # cv2.circle(frame, pt2, 5, (200, 0, 0), 2)
+            # cv2.circle(green, pt2, 5, (0, 0, 0), 2)
+
+            # if(co>0):
+
+            #  cv2.putText(frame, "acc = " + str(magacc[co]) + "  cm/s^2", (cx - 80, cy + 85), cv2.QT_FONT_NORMAL,
+            #  0.4,
+            #         (250, 250, 255))
+
+    timer.append(t)
+
+    t = t + tLoop
+
+    cv2.line(frame, (posx0[co], posy0[co]), (posx1[co], posy1[co]), (50, 40, 200), 4, lineType=8)
+    cv2.line(frame, (posx1[co], posy1[co]), (posx2[co], posy2[co]), (50, 40, 200), 4, lineType=8)
+    cv2.line(green, (posx0[co], posy0[co]), (posx1[co], posy1[co]), (255, 255, 255), 4, lineType=8)
+    cv2.line(green, (posx1[co], posy1[co]), (posx2[co], posy2[co]), (255, 255, 255), 4, lineType=8)
+
+    #
+    if ((posx1[co] - posx0[co]) != 0):
+        angel0 = int(math.atan((posy2[co] - posy1[co]) / (posx1[co] - posx2[co])) * 180 / math.pi) + 180
+    #     # print(angel0)
+    #
+    if ((posx1[co] - posx0[co]) != 0):
+        angel1 = int(math.atan((posy1[co] - posy0[co]) / (posx0[co] - posx1[co])) * 180 / math.pi)
+        if (angel1 < 0):
+            angel1 = angel1 + 360
+        if (0 < angel1 < 180):
+            angel1 = angel1 + 180
+
+    # cv2.putText(frame,str(angel0 )+ " degree", (posx2[co]+40, posy2[co]+20),cv2.QT_FONT_NORMAL,0.8,(50,50,200))
+    # cv2.putText(frame,str(angel1)+ " degree", (posx1[co]+40, posy1[co]+20),cv2.QT_FONT_NORMAL,0.8,(50,50,200))
+    #
+    cv2.putText(green, str(angel0) + " degree", (posx2[co] + 40, posy2[co] + 20), cv2.QT_FONT_NORMAL, 0.8,
+                 (255, 255, 200))
+    cv2.putText(green, str(angel1) + " degree", (posx1[co] + 40, posy1[co] + 20), cv2.QT_FONT_NORMAL, 0.8,
+                 (255, 255, 255))
+
+
+    if (co == 139):
+        # plt.show(plt.plot(timer,magspeed,linewidth=2.0))
+
+        plt.figure(1)
+        plt.suptitle('position', fontsize=14, fontweight='bold')
+        plt.xlabel('Time')
+        plt.ylabel('position ')
+        plt.scatter(timer, magpos0,c="red",edgecolors="black",linewidths=0.5,s=15)
+        plt.plot(timer, magpos0, linewidth=0.4)
+
+
+        plt.figure(2)  # the first figure
+        plt.suptitle('velocity', fontsize=14, fontweight='bold')
+        plt.xlabel('Time')
+        plt.ylabel('velocity ')
+        plt.scatter(timer, magspeed0,edgecolors="black",s=15)
+        plt.plot(timer, magspeed0, linewidth=0.4)
+
+        plt.figure(3)
+        plt.suptitle('acceleration', fontsize=14, fontweight='bold')
+        plt.xlabel('Time')
+        plt.ylabel('acceleration ')
+        plt.scatter(timer, magacc0,edgecolors="black",s=15)
+        plt.plot(timer, magacc0, linewidth=0.4)
+        print("sss")
+        scipy.io.savemat(r'C:\Users\SIR\Favorites\mat\pos0.mat', mdict={'pos0': magpos0})
+        scipy.io.savemat(r'C:\Users\SIR\Favorites\mat\vel0.mat', mdict={'vel0': magpos0})
+        scipy.io.savemat(r'C:\Users\SIR\Favorites\mat\acc0.mat', mdict={'acc0': magpos0})
+        scipy.io.savemat(r'C:\Users\SIR\Favorites\mat\timer.mat', mdict={'timer': timer})
+        # plt.show()
+
+    co = co + 1
+    print(co)
+    # if(co==4):
+    #
+    #       coeffs =np.polyfit(magpos0,timer,4)
+    #       print("xxxxxxxxxxx")
+    #       print(coeffs)
+    #       print(len(magpos0))
+    #       plt.plot(coeffs)
+    # #     intx= linspace((min(magpos0)),max(magpos0),410)
+    # #     inty=polyval(coeffs,intx)
+    # #
+    # # # plt.plot(intx,inty,'b-')
+    # #     plt.title('ínterpolation')
+    # #     plt.xlabel('x')
+    # #     plt.ylabel('y')
+    #       plt.show()
+
+    cv2.imshow("Color Tracking2", frame)
+    cv2.imshow('frame', green)
+
+
+
+
+    k = cv2.waitKey(1)
+    if k == 27:
+
+        break
+
+cap.release()
+cv2.destroyAllWindows()
